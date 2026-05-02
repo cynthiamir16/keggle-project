@@ -113,6 +113,11 @@ Comparison of the 2021 DDD result (p = 0.035, significant) vs. the 2018 placebo 
 
 ### Figure 5 — Correlation
 ![](https://github.com/cynthiamir16/keggle-project/blob/main/images/download.png)
+correlation between income, poverty and unemployment. Unemployment & Poverty = +0.52 Counties with more unemployment tend to have more poverty. When people lose jobs, poverty follows. 
+Poverty & Income = −0.68  
+The stronger relationship. Richer   counties have less poverty, higher income means fewer people struggling. 
+Unemployment & Income = −0.32 Weakest link. Higher unemployment is loosely tied to lower income, but the connection is less direct.
+
 
 ---
 
@@ -203,11 +208,6 @@ The forest plot visualizes all 12 robustness specifications simultaneously with 
 ![](LOO_Robustness_Check.png)
 
 The DDD model was re-estimated 24 times, removing one treatment state at a time. Coefficient range: [−0.066, −0.095]. All p-values remain below 0.05 except Montana and Florida (still below 0.10). No single state drives the result.
-
-### Subgroup Heterogeneity
-`scripts/slice_ddd_corrected.py` · Output: `xai/subgroup_ddd_slices.png`
-
-Identifies *who* is most affected. The effect concentrates in prime-age (26–54) workers without college degrees. Young and older workers show null results — the effect is not uniform.
 
 ### Parallel Trends Validation
 `notebooks/figure_6_event_study_DDD_State_*.svg` · Reproduced in `xai/parallel_trends_event_study.png`
