@@ -1,4 +1,4 @@
-#Impact of Ui Policy, Low Wage v.s High Wage workers 
+# Impact of Ui Policy, Low Wage v.s High Wage workers 
 **Josue Gonzalez · Cynthia Mireles · Sirjana Yadav**
 *Department of Data Science, University of Texas at Arlington — DATA 4382: Data Capstone Project 2*
 *Supervisor: Dr. Masoud Rostami · Spring 2026*
@@ -96,9 +96,9 @@ Low-wage workers are the most needed but most vulnerable as they are often taken
 All EDA figures are in `notebooks/` as SVG files.
 
 ### Figure 1 — Treatment Map 
-![](figure_1_treatment_map.png)
+![](states.png)
 
-US choropleth showing treatment states (orange = ended UI early) vs. control states (blue = kept benefits). 24 treatment states, 27 control states in the main specification.
+States that ended UI early vs. control states that kept benefits, 24 treatment states, 27 control states in the main specification.
 
 ###  Employment Trends Poster 
 ![](lowVshigh_afterPolicy.jpg)
@@ -108,13 +108,11 @@ Monthly job-finding rates (Feb–Aug 2021) for low-wage vs. higher-wage workers,
 ### Figure 4 — DDD vs. Placebo
 ![](figure_4_ddd_vs_placebo.jpeg)
 
-Side-by-side comparison of the 2021 DDD result (p = 0.035, significant) vs. the 2018 placebo test (p = 0.690, null). Confirms the 2021 effect is driven by the actual policy, not pre-existing trends.
+Comparison of the 2021 DDD result (p = 0.035, significant) vs. the 2018 placebo test (p = 0.690, null). Basically tests whether the events were going to happen regardless or not.  
 
 
-### Figure 6 — DDD Event Studies (`figure_6_event_study_DDD_State_*.svg`)
-![](figure_6_event_study_DDD.jpeg)
-
-Event study plots for 2018 and 2021 validating the parallel trends assumption. Pre-treatment coefficients cluster near zero (p > 0.10), confirming groups were trending in parallel before the policy.
+### Figure 6 — Correlation
+![](https://github.com/cynthiamir16/keggle-project/blob/main/images/download.png)
 
 ---
 
