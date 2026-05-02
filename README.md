@@ -1,1 +1,342 @@
-# keggle-project
+#Impact of Ui Policy, Low Wage v.s High Wage workers 
+**Josue Gonzalez · Cynthia Mireles · Sirjana Yadav**
+*Department of Data Science, University of Texas at Arlington — DATA 4382: Data Capstone Project 2*
+*Supervisor: Dr. Masoud Rostami · Spring 2026*
+
+---
+
+## Business Problem / Motivation
+
+In July 2021, 26 U.S. states terminated federal pandemic Unemployment Insurance (UI) benefits months ahead of the national September expiration. The unemployment policies were a temporaty safety net for those that had lost employment due to the pandemic. The policy passing in hopes of decreasing unemployment and everything going back to normal.
+
+## To this day, it has not. Vulnerable workers who needed help most were heavily impacted.
+
+Low-wage workers are the most needed but most vulnerable as they are often taken advantage of and not considered in the least. 
+
+**This project formally tests that hypothesis using individual-level causal inference methods.** No prior analysis had formally tested whether the policy's effect differed between low-wage and higher-wage workers. We fill that gap.
+
+---
+![](est_policy_workerGroup.png)
+
+## Project Overview
+
+| | |
+|---|---|
+| **Research Question** | Did the early termination of federal UI benefits in 2021 differentially affect job-finding rates for low-wage workers compared to higher-wage workers? |
+| **Approach** | Triple-Difference (DDD) causal inference model on CPS microdata |
+| **Key Finding** | Low-wage workers fared 8% worse in job-finding than higher-wage peers (coef = −0.0804, p = 0.035) |
+| **Robustness** | 12 specifications · 3 placebo tests · Leave-One-Out across 24 treatment states |
+| **Deployment** | Interactive Streamlit unemployment explorer (`web/`) |
+
+---
+
+## Data
+
+### Current Population Survey (CPS) Microdata
+- **Source:** [IPUMS CPS](https://cps.ipums.org/cps/) — nationally representative monthly survey, U.S. Census Bureau
+- **Type:** Individual-level panel microdata
+- **Raw size:** ~5 million rows, 23 columns
+- **Filtered size:** 348,098 rows → 12,620 after analysis filtering
+- **Time period:** February–August 2021 (primary) · 2018–2019 (placebo validation)
+- **File:** `cps_00006.csv` — not tracked in repo due to file size (see IPUMS link above)
+
+**Key features:**
+
+| Column | Description |
+|---|---|
+| `STATEFIP` | State FIPS code — used to assign treatment status |
+| `MONTH` | Survey month — pre/post policy timing |
+| `AGE` | Worker age — subgroup slicing |
+| `SEX` | Gender |
+| `RACE` | Race/ethnicity |
+| `EDUC` | Education level |
+| `IND` | Industry code — defines low-wage group |
+| `OCC` | Occupation code |
+| `EMPSTAT` | Employment status — used to construct `found_job` outcome |
+| `DURUNEMP` | Weeks of continuous unemployment |
+| `LNKFW1MWT` | Survey weights — applied in all regressions |
+
+###  Dataset — County Economic Context
+- **Source:** Social, Economic, and Cultural Environment (SECE) data (https://hdpulse.nimhd.nih.gov/data-portal/social/table?age=916&age_options=age16_1&demo=00012&demo_options=workforce_2&race=00&race_options=raceall_1&sex=0&sex_options=sex_3&socialtopic=090&socialtopic_options=social_6&statefips=99&statefips_options=area_states) 
+- **Coverage:** 3,069 U.S. counties
+- **Features:** Unemployment rate, poverty rate, median household income
+- **Purpose:** County-level supplemental moderation analysis (`scripts/county_aside_heterogeneity.py`)
+
+### Policy Data
+- **Source:** Policy Milestones — state-level file tracking UI termination dates
+- **Coverage:** All 50 states, March 2020–March 2022
+- **Used to:** Assign `TreatState` and state-specific post timing variables
+
+---
+
+## Data Preprocessing
+
+### Filtering
+- Narrowed CPS from 5M rows to 348,098 by keeping June–September 2021 observations
+- Further filtered to 12,620 rows for the Feb–Aug 2021 analysis window
+- Kept only working-age individuals (14+)
+
+### Feature Engineering
+| Variable | Definition |
+|---|---|
+| `TreatState` | 1 if state ended UI early (24 states in main spec), 0 = control |
+| `Post` | 1 for July–August 2021 (post-policy), 0 for February–June 2021 |
+| `LowWage` | 1 if individual works in low-wage industry (food, retail, personal services) via `IND`/`OCC` codes |
+| `found_job` | Binary outcome: 1 = employed, 0 = not employed |
+| `ended_policy_early` | State-level indicator merged from Policy Milestones CSV |
+
+### Combining CSV
+- unemployment, income and poverty across all counties were originally in three separate csv files.
+- Finding correlation required combining all three into one by filtering by county
+
+---
+
+## Exploratory Data Analysis
+
+All EDA figures are in `notebooks/` as SVG files.
+
+### Figure 1 — Treatment Map 
+![](figure_1_treatment_map.png)
+
+US choropleth showing treatment states (orange = ended UI early) vs. control states (blue = kept benefits). 24 treatment states, 27 control states in the main specification.
+
+###  Employment Trends Poster 
+![](lowVshigh_afterPolicy.jpg)
+
+Monthly job-finding rates (Feb–Aug 2021) for low-wage vs. higher-wage workers, split by treatment and control states. A visible divergence emerges after the July policy cutoff.
+
+### Figure 4 — DDD vs. Placebo
+![](figure_4_ddd_vs_placebo.jpeg)
+
+Side-by-side comparison of the 2021 DDD result (p = 0.035, significant) vs. the 2018 placebo test (p = 0.690, null). Confirms the 2021 effect is driven by the actual policy, not pre-existing trends.
+
+
+### Figure 6 — DDD Event Studies (`figure_6_event_study_DDD_State_*.svg`)
+![](figure_6_event_study_DDD.jpeg)
+
+Event study plots for 2018 and 2021 validating the parallel trends assumption. Pre-treatment coefficients cluster near zero (p > 0.10), confirming groups were trending in parallel before the policy.
+
+---
+
+## Modeling Approach
+
+### Baseline Model — Two-Way Fixed Effects (TWFE) on Aggregate Data
+**Notebook:** `baseline_model.ipynb`
+
+- **Data:** State-level aggregate employment from Opportunity Insights Economic Tracker
+- **Specification:** `employment_rate ~ TreatState + Post + TreatState:Post + StateFE + TimeFE`
+- **Result:** Insignificant (coef = 0.003, p = 0.41)
+- **Why it failed:** Aggregate data masks individual-level heterogeneity. Non-parallel pre-trends made causal identification impossible.
+
+### Primary Model — Triple-Difference (DDD) on CPS Microdata
+**Notebook:** `notebooks/SignificanceHolzerStyle.ipynb`
+
+The DDD is the gold standard for testing *heterogeneous* policy effects across subgroups. By adding a third difference (`LowWage`), we formally isolate the differential effect on our target group rather than estimating a single average treatment effect.
+
+**Specification:**
+```
+found_job ~ TreatState × Post × LowWage + C(STATEFIP) + C(MONTH)
+```
+**Key interaction term:** `TreatState × Post × LowWage` captures the differential causal effect — how much worse (or better) low-wage workers did in treatment states after the policy, relative to higher-wage workers and relative to control states.
+
+### Supporting Models
+| Model | Notebook/Script | Purpose |
+|---|---|---|
+| Low-wage TWFE subgroup | `SignificanceHolzerStyle.ipynb` | Isolates direct effect on low-wage workers |
+| Higher-wage TWFE subgroup | `SignificanceHolzerStyle.ipynb` | Isolates direct effect on higher-wage workers |
+| Path analysis | `notebooks/path_analysis.ipynb` | Direct/indirect causal structure among features |
+| Holzer-style robustness | `scripts/holzer_style_robustness.py` | Replicates Holzer et al. (2021) comparison |
+| Subgroup DDD slices | `scripts/slice_ddd_corrected.py` | Age, education, and intersection subgroups |
+| County moderation | `scripts/county_aside_heterogeneity.py` | Tests whether local conditions moderate the effect |
+
+---
+
+## Model Training
+
+| Setting | Detail |
+|---|---|
+| **Tools** | Python · `statsmodels` · `pandas` · `numpy` · `linearmodels` |
+| **Estimation** | Weighted Least Squares (WLS) — survey weights via `LNKFW1MWT` |
+| **Standard errors** | Clustered at state level (`cov_type='cluster'`) |
+| **Fixed effects** | State FE (`C(STATEFIP)`) + Month FE (`C(MONTH)`) |
+| **Sample** | 12,620 observations · 24 treatment states · 27 control states |
+| **Primary notebook** | `notebooks/SignificanceHolzerStyle.ipynb` |
+
+No hyperparameter tuning required — the DDD is a fixed identification strategy, not a predictive model.
+## Results
+___
+### Main DDD Result
+
+| Term | Coefficient | p-value | Interpretation |
+|---|---|---|---|
+| `TreatState × Post × LowWage` | **−0.0804** | **0.035** | Low-wage workers in treatment states saw 8% worse job-finding post-policy relative to higher-wage peers |
+| `TreatState × Post` (Higher-Wage) | +0.0472 | 0.052 | Higher-wage workers saw a marginal employment gain |
+| `TreatState × Post` (Low-Wage) | −0.08 | 0.470 | No significant direct effect on low-wage workers alone |
+
+### Subgroup DDD Slices
+
+| Subgroup | Specification | Coefficient | p-value | n |
+|---|---|---|---|---|
+| All ages | State-specific corrected | −0.049 | 0.013 | 13,443 |
+| Prime age (26–54) | State-specific corrected | **−0.070** | **0.002** | 7,673 |
+| No college degree | State-specific corrected | −0.052 | 0.022 | 10,076 |
+| **Prime age + no college** | State-specific corrected | **−0.083** | **0.005** | 5,611 |
+| Young (18–24) | State-specific corrected | −0.025 | 0.267 | 2,370 |
+| Older (55+) | State-specific corrected | −0.001 | 0.977 | 2,913 |
+
+### Robustness Suite (`scripts/main_claim_robustness_suite.py`)
+
+![](est_policy_workerGroup.png)
+
+
+**9 of 12 specifications negative. 6 statistically significant. Zero significant results in the opposite direction.**
+
+
+## Model Interpretation (XAI / Global Explainability)
+
+See the [`xai/`](./xai/) folder for all explainability outputs and a full explanation of each.
+
+### Global Explainability — DDD Forest Plot
+`notebooks/ddd_forest_plot.ipynb` · Output: `xai/forest_plot_ddd.png`
+![](triple_difference_forest.png)
+
+The forest plot visualizes all 12 robustness specifications simultaneously with 95% confidence intervals. This is our **global explainability layer** — it shows how the policy effect behaves across the entire range of modeling choices. Every dot left of zero means the policy hurt low-wage workers.
+
+### Leave-One-Out (LOO) Analysis
+`notebooks/LOO_Robustness_Check.png` · Reproduced in `xai/loo_forest_plot.png`
+![](LOO_Robustness_Check.png)
+
+The DDD model was re-estimated 24 times, removing one treatment state at a time. Coefficient range: [−0.066, −0.095]. All p-values remain below 0.05 except Montana and Florida (still below 0.10). No single state drives the result.
+
+### Subgroup Heterogeneity
+`scripts/slice_ddd_corrected.py` · Output: `xai/subgroup_ddd_slices.png`
+
+Identifies *who* is most affected. The effect concentrates in prime-age (26–54) workers without college degrees. Young and older workers show null results — the effect is not uniform.
+
+### Parallel Trends Validation
+`notebooks/figure_6_event_study_DDD_State_*.svg` · Reproduced in `xai/parallel_trends_event_study.png`
+
+All pre-treatment coefficients cluster near zero (p > 0.10). The divergence begins exactly at the July 2021 cutoff. The placebo tests (2018, 2019, fake May 2021) all return null, confirming the 2021 effect is real.
+
+### County-Level Moderation
+`scripts/county_aside_heterogeneity.py` · Output: `xai/county_correlation_heatmap.png`
+
+County income, poverty, and unemployment do not significantly moderate the main effect (all interaction p-values > 0.87). The harm was broadly distributed regardless of local economic conditions.
+
+---
+
+## Key Insights
+
+**What worked best:**
+- The Triple-Difference design on individual-level CPS microdata outperformed the aggregate TWFE baseline in both statistical power and interpretive clarity
+- State-specific timing (using each state's actual termination date) produced the sharpest estimates — precision in policy timing matters
+- The subgroup analysis revealed the most policy-relevant finding: prime-age workers without degrees, the exact demographic the policy intended to help, were harmed most
+
+**Practical and policy impact:**
+- Cutting benefits did not push low-wage workers back to work. The structural barriers they face — childcare, transportation, localized demand, health concerns — are not overcome by removing financial support
+- Future unemployment policy must be **targeted by wage group and structural context**, not applied as a blanket measure
+- The evidence is strong enough to inform legislative testimony and state labor department recommendations
+--
+## Conclusion
+The early termination of federal UI benefits in 2021 acted as a blunt instrument that failed to spur relative employment gains for the most vulnerable segment of the workforce. The Triple-Difference estimate of −0.0804 (p = 0.035) confirms a statistically significant negative differential effect.
+
+This finding is:
+- **Directionally consistent** across 9 of 12 robustness specifications
+- **Stable across all 24 treatment states** (LOO analysis — `notebooks/LOO_Robustness_Check.png`)
+- **Not driven by pre-existing trends** (3 independent placebo tests passed)
+- **Not explained by local economic conditions** (county moderation tests null)
+
+The policy widened the recovery gap. Reducing income support did not override the structural barriers low-wage workers face.
+
+---
+
+## Future Work
+
+- **Causal Forest** — estimate Conditional Average Treatment Effects (CATE) at the individual level to profile which workers were most harmed
+- **Longer time horizon** — track employment outcomes through December 2021 for medium-term recovery analysis
+- **Variable dictionary** — add a codebook documenting every variable transformation and treatment definition
+- **Export final tables** — generate stable LaTeX/Markdown output tables from the preferred specification into `data/outputs/`
+
+---
+
+## How to Run
+
+### 1. Clone the repository
+```bash
+git clone https://github.com/Jomgus/Capstone.git
+cd Capstone
+```
+
+### 2. Set up environment
+```bash
+python3 -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### 3. Obtain CPS data
+Download `cps_00006.csv` from [IPUMS CPS](https://cps.ipums.org/cps/) and place it in `data/raw/`.
+
+### 4. Build the county-level panel
+```bash
+python3 prepare_panel_for_twfe.py
+```
+
+### 5. Run the main DDD analysis
+Open and run **`notebooks/SignificanceHolzerStyle.ipynb`** — this is the primary analysis notebook containing the main DDD model, placebo tests, and LOO robustness checks.
+
+### 6. Run the robustness suite
+```bash
+python3 scripts/main_claim_robustness_suite.py
+python3 scripts/holzer_style_robustness.py
+python3 scripts/slice_ddd_corrected.py
+python3 scripts/county_aside_heterogeneity.py
+```
+
+### 7. Build Streamlit app data
+```bash
+python3 scripts/build_streamlit_ddd_dataset.py
+python3 scripts/build_policy_demo_bundle.py
+```
+
+### 8. Launch the interactive policy explorer
+```bash
+cd web
+streamlit run app.py
+```
+## Requirements
+
+```bash
+pip install -r requirements.txt
+```
+
+| Package | Purpose |
+|---|---|
+| `pandas` | Data manipulation and filtering |
+| `numpy` | Numerical computation |
+| `statsmodels` | WLS regression, clustered standard errors |
+| `linearmodels` | Panel fixed effects estimation |
+| `matplotlib` | Static visualization |
+| `seaborn` | Statistical visualization |
+| `plotly` | Interactive charts for Streamlit app |
+| `streamlit` | Interactive policy explorer web app |
+| `jupyter` | Notebook environment |
+
+---
+
+## Team
+
+| Name | Role | Contact |
+|---|---|---|
+| Josue Gonzalez | Lead Analyst — causal modeling, robustness suite | josue.gonzalez@mavs.uta.edu |
+| Cynthia Mireles | Data Engineer — CPS preprocessing, panel construction | cynthia.mireles@mavs.uta.edu |
+| Sirjana Yadav | Model Interpretation & Visualization — XAI, Streamlit app | sirjana.yadav@mavs.uta.edu |
+
+*DATA 4382: Data Capstone Project 2 · University of Texas at Arlington · Spring 2026*
+---
+## References
+
+- Holzer, H. J., Hubbard, G., & Strain, M. (2021). Did Pandemic Unemployment Benefits Reduce Employment? Evidence from Early State-Level Expirations in June 2021. *IZA Discussion Paper No. 14927.* [SSRN](https://ssrn.com/abstract=4114431)
+- Coombs, K., Dube, A., Jahnke, C., Kluender, R., Naidu, S., & Stepner, M. (2022). Early Withdrawal of Pandemic Unemployment Insurance: Effects on Employment and Earnings. *AEA Papers and Proceedings, 112*, 85–90.
+- James, G., Witten, D., Hastie, T., & Tibshirani, R. (2021). *An Introduction to Statistical Learning: With Applications in R* (2nd ed.). Springer.
+- Callaway, B. (2023). Difference-in-differences for policy evaluation. *Handbook of
