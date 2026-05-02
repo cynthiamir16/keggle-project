@@ -190,9 +190,7 @@ ___
 **9 of 12 specifications negative. 6 statistically significant. Zero significant results in the opposite direction.**
 
 
-## Model Interpretation (XAI / Global Explainability)
 
-See the [`xai/`](./xai/) folder for all explainability outputs and a full explanation of each.
 
 ### Global Explainability — DDD Forest Plot
 `notebooks/ddd_forest_plot.ipynb` · Output: `xai/forest_plot_ddd.png`
