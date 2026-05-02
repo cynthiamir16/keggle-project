@@ -96,22 +96,22 @@ Low-wage workers are the most needed but most vulnerable as they are often taken
 All EDA figures are in `notebooks/` as SVG files.
 
 ### Figure 1 — Treatment Map 
-![](states.png)
+![](https://github.com/cynthiamir16/keggle-project/blob/main/images/states.png)
 
 States that ended UI early vs. control states that kept benefits, 24 treatment states, 27 control states in the main specification.
 
 ###  Employment Trends Poster 
-![](lowVshigh_afterPolicy.jpg)
+![](https://github.com/cynthiamir16/keggle-project/blob/main/images/ddd_state_event_study_2021_lowwage_vs_other-wage.png)
 
 Monthly job-finding rates (Feb–Aug 2021) for low-wage vs. higher-wage workers, split by treatment and control states. A visible divergence emerges after the July policy cutoff.
 
 ### Figure 4 — DDD vs. Placebo
-![](figure_4_ddd_vs_placebo.jpeg)
+![](https://github.com/cynthiamir16/keggle-project/blob/main/images/figure_4_ddd_vs_placebo.svg)
 
 Comparison of the 2021 DDD result (p = 0.035, significant) vs. the 2018 placebo test (p = 0.690, null). Basically tests whether the events were going to happen regardless or not.  
 
 
-### Figure 6 — Correlation
+### Figure 5 — Correlation
 ![](https://github.com/cynthiamir16/keggle-project/blob/main/images/download.png)
 
 ---
@@ -291,8 +291,9 @@ python3 scripts/county_aside_heterogeneity.py
 
 ### 7. Build Streamlit app data
 ```bash
-python3 scripts/build_streamlit_ddd_dataset.py
-python3 scripts/build_policy_demo_bundle.py
+PS C:\Users\cynth> cd app
+PS C:\Users\cynth\app> notepad app.py
+PS C:\Users\cynth\app> py -m streamlit run app.py
 ```
 
 ### 8. Launch the interactive policy explorer
