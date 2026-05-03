@@ -105,6 +105,10 @@ States that ended UI early vs. control states that kept benefits, 24 treatment s
 
 Monthly job-finding rates (Feb–Aug 2021) for low-wage vs. higher-wage workers, split by treatment and control states. A visible divergence emerges after the July policy cutoff.
 
+### Employment Groups 
+![] (https://github.com/cynthiamir16/keggle-project/blob/main/images/employment%20groups.jpg) 
+employment groups throughout 2021 
+
 ### Figure 4 — DDD vs. Placebo
 ![](https://github.com/cynthiamir16/keggle-project/blob/main/images/figure_4_ddd_vs_placebo.svg)
 
