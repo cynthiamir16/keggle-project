@@ -219,9 +219,7 @@ The DDD model was re-estimated 24 times, removing one treatment state at a time.
 All pre-treatment coefficients cluster near zero (p > 0.10). The divergence begins exactly at the July 2021 cutoff. The placebo tests (2018, 2019, fake May 2021) all return null, confirming the 2021 effect is real.
 
 ### County-Level Moderation
-`scripts/county_aside_heterogeneity.py` · Output: `xai/county_correlation_heatmap.png`
-
-County income, poverty, and unemployment do not significantly moderate the main effect (all interaction p-values > 0.87). The harm was broadly distributed regardless of local economic conditions.
+County income, poverty, and unemployment did have a correlation among themsevles but did not have main effect (all interaction p-values > 0.87). The harm was broadly distributed regardless of local economic conditions.
 
 ---
 
