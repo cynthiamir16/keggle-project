@@ -95,7 +95,7 @@ Low-wage workers are the most needed but most vulnerable as they are often taken
 
 All EDA figures are in `notebooks/` as SVG files.
 
-### Figure 1 — Treatment Map 
+### States Visual 
 ![](https://github.com/cynthiamir16/keggle-project/blob/main/images/states.png)
 
 States that ended UI early vs. control states that kept benefits, 24 treatment states, 27 control states in the main specification.
@@ -106,16 +106,16 @@ States that ended UI early vs. control states that kept benefits, 24 treatment s
 Monthly job-finding rates (Feb–Aug 2021) for low-wage vs. higher-wage workers, split by treatment and control states. A visible divergence emerges after the July policy cutoff.
 
 ### Employment Groups 
-![] (https://github.com/cynthiamir16/keggle-project/blob/main/images/employment%20groups.jpg) 
+![](https://github.com/cynthiamir16/keggle-project/blob/main/images/employment%20groups.jpg) 
 employment groups throughout 2021 
 
-### Figure 4 — DDD vs. Placebo
+### DDD vs. Placebo
 ![](https://github.com/cynthiamir16/keggle-project/blob/main/images/figure_4_ddd_vs_placebo.svg)
 
 Comparison of the 2021 DDD result (p = 0.035, significant) vs. the 2018 placebo test (p = 0.690, null). Basically tests whether the events were going to happen regardless or not.  
 
 
-### Figure 5 — Correlation
+### Correlation
 ![](https://github.com/cynthiamir16/keggle-project/blob/main/images/download.png)
 correlation between income, poverty and unemployment. Unemployment & Poverty = +0.52 Counties with more unemployment tend to have more poverty. When people lose jobs, poverty follows. 
 Poverty & Income = −0.68  
